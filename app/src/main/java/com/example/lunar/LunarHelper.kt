@@ -94,9 +94,20 @@ object LunarHelper {
     fun fromSolarDate(solarDate: Date): LunarDate {
         val calendar = Calendar.getInstance().apply { time = solarDate }
         val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        // Calculate offset days from 1900-01-31
-        var offset = ((solarDate.time - baseTimeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
+        // Calculate offset days from 1900-01-31 in a timezone-independent calendar date way
+        val calBase = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+            set(1900, Calendar.JANUARY, 31, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val calSolar = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+            set(year, month, day, 12, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        var offset = ((calSolar.timeInMillis - calBase.timeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
 
         var lunarYear = 1900
         var daysInYear = getLunarYearDays(lunarYear)
@@ -140,10 +151,10 @@ object LunarHelper {
         val ganZhiYear = tgString[yearIndex % 10] + dzString[yearIndex % 12]
         val zodiac = sxString[yearIndex % 12]
 
-        // Date calculation for Day Stem-Branch (approximation based on standard offset calculation)
+        // Date calculation for Day Stem-Branch (using timezone-independent calendar day offset)
         // Reference: Epoch day stem-branch.
         // 1900-01-31 was 甲戌日 (Stem index 0, Branch index 10)
-        val dayOffset = ((solarDate.time - baseTimeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
+        val dayOffset = ((calSolar.timeInMillis - calBase.timeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
         val dayIndex = (dayOffset + 10) % 60
         val ganZhiDay = tgString[dayIndex % 10] + dzString[dayIndex % 12]
 
@@ -161,9 +172,11 @@ object LunarHelper {
         // Hourly celestial branches and names (十二时辰)
         val (shichenName, shichenRange) = getShichenInfo(hourOfDay)
 
-        // Taboos & Suitabilities (宜忌) based on Day's Earthly Branch
+        // Taboos & Suitabilities (宜忌) based on Twelve Day Officers (建除十二神)
+        val monthBranchIndex = (lunarMonth + 1) % 12 // Lunar Jan is Month of Tiger (寅: index 2)
         val dayBranchIndex = dayIndex % 12
-        val (suitable, taboo) = getHuangliEvents(dayBranchIndex)
+        val officerIndex = (dayBranchIndex - monthBranchIndex + 12) % 12
+        val (suitable, taboo) = getHuangliEvents(officerIndex)
 
         val chongAnimal = sxString[(dayBranchIndex + 6) % 12]
         val shaDir = when (dayBranchIndex) {
@@ -234,55 +247,55 @@ object LunarHelper {
         return Pair(name, range)
     }
 
-    private fun getHuangliEvents(branchIndex: Int): Pair<List<String>, List<String>> {
-        return when (branchIndex) {
-            0 -> Pair( // 子
-                listOf("祭祀", "祈福", "求嗣", "出行", "沐浴", "治病"),
-                listOf("动土", "筑墙", "嫁娶", "移徙", "词讼", "安葬")
+    private fun getHuangliEvents(officerIndex: Int): Pair<List<String>, List<String>> {
+        return when (officerIndex) {
+            0 -> Pair( // 建
+                listOf("出行", "交易", "塞穴", "扫舍"),
+                listOf("开仓", "动土", "破土", "安葬", "嫁娶", "筑墙")
             )
-            1 -> Pair( // 丑
-                listOf("祭祀", "扫舍", "塞穴", "安葬", "修饰墙面", "平治道涂"),
-                listOf("嫁娶", "出行", "入宅", "开市", "安门", "作灶")
+            1 -> Pair( // 除
+                listOf("祭祀", "祈福", "沐浴", "治病", "扫舍", "裁衣"),
+                listOf("嫁娶", "出行", "移徙", "入宅", "开市", "动土")
             )
-            2 -> Pair( // 寅
-                listOf("嫁娶", "出行", "开市", "安床", "入宅", "移徙"),
-                listOf("动土", "祭祀", "祈福", "修造", "破土", "安葬")
+            2 -> Pair( // 满
+                listOf("祭祀", "祈福", "沐浴", "结网", "取鱼", "扫舍"),
+                listOf("嫁娶", "动土", "移徙", "入宅", "安葬", "词讼")
             )
-            3 -> Pair( // 卯
-                listOf("祭祀", "祈福", "求嗣", "开光", "伐木", "安床"),
-                listOf("嫁娶", "出行", "入宅", "动土", "安葬", "开市")
+            3 -> Pair( // 平
+                listOf("祭祀", "治病", "破土", "安葬", "修饰垣墙", "扫舍"),
+                listOf("嫁娶", "出行", "移徙", "入宅", "开市", "祈福")
             )
-            4 -> Pair( // 辰
-                listOf("祭祀", "出行", "交易", "收养", "修饰垣墙", "冠笄"),
-                listOf("嫁娶", "安葬", "动土", "移徙", "祈福", "开市")
+            4 -> Pair( // 定
+                listOf("祭祀", "祈福", "嫁娶", "订盟", "纳采", "冠笄", "裁衣", "合帐", "交易", "立券", "安床"),
+                listOf("出行", "词讼", "治病", "移徙", "入宅", "栽种", "掘井")
             )
-            5 -> Pair( // 巳
-                listOf("祭祀", "出行", "开市", "交易", "立券", "挂匾"),
-                listOf("嫁娶", "入宅", "安葬", "动土", "破土", "修造")
+            5 -> Pair( // 执
+                listOf("祭祀", "祈福", "求嗣", "沐浴", "塞穴", "捕鱼", "捕捉", "扫舍"),
+                listOf("嫁娶", "开市", "交易", "立券", "搬家", "移徙", "出行")
             )
-            6 -> Pair( // 午
-                listOf("祈福", "祭祀", "求嗣", "嫁娶", "出行", "移徙"),
-                listOf("动土", "破土", "修造", "安葬", "词讼", "开渠")
+            6 -> Pair( // 破
+                listOf("破屋", "坏垣", "扫舍", "治病", "破土", "安葬"),
+                listOf("嫁娶", "出行", "移徙", "入宅", "开市", "祈福")
             )
-            7 -> Pair( // 未
-                listOf("祭祀", "祈福", "修造", "动土", "入宅", "嫁娶"),
-                listOf("出行", "开市", "求医", "词讼", "针灸", "安葬")
+            7 -> Pair( // 危
+                listOf("祭祀", "祈福", "求嗣", "沐浴", "治病", "扫舍", "塞穴", "捕捉"),
+                listOf("登高", "行船", "安葬", "动土", "移徙", "入宅", "嫁娶")
             )
-            8 -> Pair( // 申
-                listOf("出行", "嫁娶", "纳采", "除服", "成服", "入殓"),
-                listOf("动土", "开市", "破土", "移徙", "伐木", "词讼")
+            8 -> Pair( // 成
+                listOf("嫁娶", "订盟", "纳采", "出行", "祭祀", "祈福", "动土", "破土", "安葬"),
+                listOf("词讼", "治病")
             )
-            9 -> Pair( // 酉
-                listOf("祭祀", "出行", "会亲友", "沐浴", "纳财", "扫舍"),
-                listOf("嫁娶", "安床", "动土", "安葬", "修造", "破土")
+            9 -> Pair( // 收
+                listOf("祭祀", "扫舍", "捕鱼", "乘船", "捕捉", "纳财", "开仓"),
+                listOf("嫁娶", "出行", "安葬", "动土", "移徙", "入宅", "祈福")
             )
-            10 -> Pair( // 戌
-                listOf("祭祀", "祈福", "求嗣", "入宅", "移徙", "理发"),
-                listOf("嫁娶", "安葬", "开市", "交易", "合脊", "出行")
+            10 -> Pair( // 开
+                listOf("嫁娶", "纳采", "祭祀", "祈福", "出行", "立券", "移徙", "入宅", "动土", "破土", "安葬"),
+                listOf("开光", "作灶", "盖屋", "架马", "开仓")
             )
-            11 -> Pair( // 亥
-                listOf("祭祀", "祈福", "求嗣", "出行", "移徙", "入宅"),
-                listOf("开市", "交易", "动土", "破土", "行丧", "安葬")
+            11 -> Pair( // 闭
+                listOf("祭祀", "筑墙", "塞穴", "捕鱼", "捕捉", "扫舍"),
+                listOf("针灸", "出行", "迁移", "动土", "破土", "嫁娶")
             )
             else -> Pair(
                 listOf("祭祀", "祈福", "出行", "扫舍", "沐浴", "交易"),

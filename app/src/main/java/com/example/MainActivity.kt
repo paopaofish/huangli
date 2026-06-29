@@ -246,13 +246,22 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Huangli suitability and taboos details
+                val isDark = isSystemInDarkTheme()
+                val suitableColor = if (isDark) Color(0xFF4ADE80) else Color(0xFF15803D)
+                val suitableBg = if (isDark) Color(0xFF22C55E).copy(alpha = 0.15f) else Color(0xFF22C55E).copy(alpha = 0.08f)
+                val tabooColor = if (isDark) Color(0xFFF87171) else Color(0xFFB91C1C)
+                val tabooBg = if (isDark) Color(0xFFEF4444).copy(alpha = 0.15f) else Color(0xFFEF4444).copy(alpha = 0.08f)
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Suitable Card (宜)
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
@@ -264,22 +273,45 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("吉事推荐", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        lunarDate.suitable.forEach { item ->
-                            Text(
-                                text = "• $item",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = Color(0xFF15803D),
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier.padding(vertical = 2.dp)
-                            )
+                        
+                        lunarDate.suitable.chunked(2).forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                rowItems.forEach { item ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(vertical = 3.dp)
+                                            .background(suitableBg, RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = item,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = suitableColor,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 13.sp
+                                            ),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                                if (rowItems.size < 2) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
 
                     // Taboo Card (忌)
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
@@ -291,16 +323,36 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("诸事不宜", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        lunarDate.taboo.forEach { item ->
-                            Text(
-                                text = "• $item",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = Color(0xFFB91C1C),
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                modifier = Modifier.padding(vertical = 2.dp)
-                            )
+                        
+                        lunarDate.taboo.chunked(2).forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                rowItems.forEach { item ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(vertical = 3.dp)
+                                            .background(tabooBg, RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = item,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = tabooColor,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 13.sp
+                                            ),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                                if (rowItems.size < 2) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
                 }
