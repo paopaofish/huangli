@@ -10,6 +10,7 @@
             "version": "17",
             "installGradle": true,
             "gradleVersion": "9.3.1"
+
         }
     },
     "postCreateCommand": "sudo apt-get update && sudo apt-get install -y wget unzip && wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && sudo unzip -q /tmp/cmdline-tools.zip -d /usr/local/ && sudo mv /usr/local/cmdline-tools /usr/local/android-sdk && rm /tmp/cmdline-tools.zip && export ANDROID_HOME=/usr/local/android-sdk && export PATH=$PATH:$ANDROID_HOME/bin && yes | sdkmanager --licenses && sdkmanager 'platforms;android-34' 'build-tools;34.0.0' && echo 'export ANDROID_HOME=/usr/local/android-sdk' >> /home/vscode/.bashrc && echo 'export PATH=$PATH:/usr/local/android-sdk/bin' >> /home/vscode/.bashrc",
@@ -24,8 +25,8 @@
             ]
         }
     },
-
     // 资源需求（可选）
+
     "hostRequirements": {
         "cpus": 4,
         "memory": "8gb",
