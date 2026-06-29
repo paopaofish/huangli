@@ -90,7 +90,103 @@
 +-----------------------------------------------------------+
 ```
 
-### 3.1 核心算法模块 (`LunarHelper.kt`)
+### 3.1 UML 架构设计类图 (Class Diagram)
+
+以下为核心组件的类关系与数据模型图，展现了 UI 视图层、物理历法推算引擎与占卜实体之间的紧密协作：
+
+```mermaid
+classDiagram
+    class MainActivity {
+        +onCreate()
+        +LunarAlmanacApp()
+        +DeityDirectionBadge()
+    }
+    class LunarWidget {
+        +onUpdate()
+        +provideGlance()
+    }
+    class LunarHelper {
+        <<singleton>>
+        +fromSolarDate(Date date) LunarDate
+        -getHuangliEvents(int dayBranchIndex)
+        -getShichen(int hour)
+    }
+    class LunarDate {
+        +int lunarYear
+        +int lunarMonth
+        +int lunarDay
+        +String ganzhiYear
+        +String ganzhiMonth
+        +String ganzhiDay
+        +List~String~ suitable
+        +List~String~ taboo
+        +String shichenName
+        +String shichenRange
+        +String chongSha
+        +String caiShen
+        +String xiShen
+        +String fuShen
+    }
+    class XiaoLiuRenResult {
+        +String name
+        +String level
+        +String song
+        +String formula
+        +Map~String, String~ details
+        +String tip
+    }
+
+    MainActivity ..> LunarHelper : uses
+    LunarWidget ..> LunarHelper : uses
+    LunarHelper ..> LunarDate : creates
+    MainActivity ..> XiaoLiuRenResult : displays / calculates
+```
+
+### 3.2 UML 时序图设计 (Sequence Diagrams)
+
+#### 3.2.1 每日历法及吉神方位实时轮询 (Live Clock Sequence)
+主界面通过 Live Clock 时钟维持每 10 秒一次的状态刷新，确保天干地支、每日冲煞及吉神方位时刻处于最新状态：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Compose App UI
+    participant Helper as LunarHelper
+    participant Timer as Live Clock (10s timer)
+
+    Timer->>App: OnTick (Triggers State Update)
+    App->>Helper: fromSolarDate(currentTime)
+    Note over Helper: Compute Solar to Lunar Map<br/>Determine Day Branch Index<br/>Calculate Chong Sha & 3 Auspicious Deities
+    Helper-->>App: Return updated LunarDate Object
+    App->>App: Recompose with new values (Theme, ChongSha, Cai/Xi/Fu Shen)
+    Note over App: Update 1:1 Live Preview Cards
+```
+
+#### 3.2.2 小六壬掐指占卜推演过程 (Xiao Liu Ren Sequence)
+用户点击掐指妙算时，触发 1.2 秒的沉浸式加载（模拟掐指推算），而后通过 `animateContentSize` 动画平滑展现多维度解析：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 用户 (User)
+    participant UI as Compose App UI (LunarAlmanacApp)
+    participant VM as LaunchedEffect Coroutine
+    participant Alg as Xiao Liu Ren Algorithm
+
+    User->>UI: 点击 “立即掐指推算” 按钮
+    UI->>UI: 设置 isCalculating = true (按钮置灰)
+    UI->>User: 播放 1.2s 呼吸加载动画 (“掐指推算中...”)
+    UI->>VM: LaunchedEffect(isCalculating) triggered
+    VM->>VM: delay(1200) (沉浸式凝神等待)
+    VM->>Alg: calculateXiaoLiuRen(month, day, shichen)
+    Note over Alg: 按月、日、时顺序<br/>在六个状态中循环顺推
+    Alg-->>VM: 返回多维度 XiaoLiuRenResult 实体
+    VM->>UI: 更新 xiaoLiuRenResult 状态且 isCalculating = false
+    UI->>UI: Trigger animateContentSize() container expansion
+    UI->>User: 优雅展示吉凶歌诀、求占路线与 6 维现代行止指南
+```
+
+### 3.3 核心算法模块 (`LunarHelper.kt`)
 
 #### 3.1.1 动态冲煞算法设计
 每日的冲煞是由当天日柱的地支属性严格决定的。天干地支共十二位，与十二生肖一一对应。
@@ -132,6 +228,42 @@ $$\text{StateNames} = [0: \text{大安}, 1: \text{留连}, 2: \text{速喜}, 3: 
 $$\text{finalIndex} = (\text{month} + \text{day} + \text{shichenIndex} - 3) \bmod 6$$
 该算法结果经测试完全与指心顺推相符。程序不仅返回落卦，还输出结构完整的推演路线图。
 
+#### 3.1.3 每日吉神方位算法设计 (财神、喜神、福神)
+根据中华传统民俗历法与八字五行方位歌诀，每日的财神、喜神与福神方位由当日的**日天干 (Daily Heavenly Stem)** 决定。
+
+1. **天干索引与映射 (Stem Index)**：
+   天干序列为：`["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]`，对应索引为 `0` 至 `9`。
+
+2. **财神方位推导 (God of Wealth)**：
+   - 歌诀：“甲艮乙坤丙丁兑，戊己财神坐坎位。庚辛正东壬癸南，此是财神正方位。”
+   - 映射表：
+     - **甲 (0)**：东北 (艮)
+     - **乙 (1)**：西南 (坤)
+     - **丙 (2), 丁 (3)**：正西 (兑)
+     - **戊 (4), 己 (5)**：正北 (坎)
+     - **庚 (6), 辛 (7)**：正东 (震)
+     - **壬 (8), 癸 (9)**：正南 (离)
+
+3. **喜神方位推导 (God of Joy)**：
+   - 歌诀：“甲己在艮乙庚乾，丙辛坤位喜神安；丁壬本在离宫坐，戊癸原来在巽间。”
+   - 映射表：
+     - **甲 (0), 己 (5)**：东北 (艮)
+     - **乙 (1), 庚 (6)**：西北 (乾)
+     - **丙 (2), 辛 (7)**：西南 (坤)
+     - **丁 (3), 壬 (8)**：正南 (离)
+     - **戊 (4), 癸 (9)**：东南 (巽)
+
+4. **福神方位推导 (God of Fortune)**：
+   - 歌诀：“甲己正北是福神，丙辛西北乾宫存；乙庚坤位戊癸艮，丁壬巽上妙追寻。”
+   - 映射表：
+     - **甲 (0), 己 (5)**：正北 (坎)
+     - **乙 (1), 庚 (6)**：西南 (坤)
+     - **丙 (2), 辛 (7)**：西北 (乾)
+     - **丁 (3), 壬 (8)**：东南 (巽)
+     - **戊 (4), 癸 (9)**：东北 (艮)
+
+该算法完美融合在物理万年历的日干换算中，实现了精准的、不依赖网络的本地化实时方位推导。
+
 ---
 
 ## 4. UI 界面与交互规范
@@ -156,6 +288,17 @@ $$\text{finalIndex} = (\text{month} + \text{day} + \text{shichenIndex} - 3) \bmo
   - 维度名称（如：`🧭 有利方位`）文字加粗，并根据卦象吉凶属性（如大安对应高亮绿，速喜对应欢庆粉，空亡对应沉稳灰）作动态着色。
 - **指引警示框 (Tip Box)**：在卡片最底端，使用 `levelColor.copy(alpha = 0.08f)` 的极淡底色边框，包裹现代化的温馨指引语，提升产品体验的温度。
 
+### 4.3 每日吉神方位 UI 呈现规范
+- **主界面黄历底部模块**：
+  - 采用 `HorizontalDivider` 与上方的冲煞信息轻轻分割。
+  - 使用标示性的“每日吉神方位”小标题配以 `Icons.Default.LocationOn` 指南针定位图标。
+  - 横向排列 3 个结构均匀、具有 8.dp 细腻圆角的轻量卡片 `DeityDirectionBadge`。
+  - **财神方位**：使用富贵的金黄色主题（`Color(0xFFF59E0B)`）和 `Icons.Default.Star` 繁星图标。
+  - **喜神方位**：使用欢庆温馨的粉色主题（`Color(0xFFEC4899)`）和 `Icons.Default.Favorite` 爱心图标。
+  - **福神方位**：使用平安健康的翡翠绿主题（`Color(0xFF10B981)`）和 `Icons.Default.LocationOn` 指引图标。
+- **Widget 桌面小部件与预览**：
+  - 以极简统一的“吉”字高对比底色圆角标签开头，横向一行以紧凑格式并排展示三个方位：`财神:东北 喜神:西北 福神:西南`，适配各类桌面空间大小而不产生溢出。
+
 ---
 
 ## 5. 测试与可靠性保障
@@ -166,7 +309,7 @@ $$\text{finalIndex} = (\text{month} + \text{day} + \text{shichenIndex} - 3) \bmo
 - **本地单元测试 (`ExampleRobolectricTest.kt`)**：
   - 每次代码变更后均通过本地 JVM 单元测试，自动模拟各种时间点、计算冲煞并比对。
   - **测试命令**：`gradle :app:testDebugUnitTest` 验证通过，编译状态绿标完好。
-- **无网络依赖**：没有任何 `HTTP` 请求和第三方数据接口，最大程度提升冷启动速度并提供无可置疑的安全隐私。
+- **无网络依赖**：没有任何 `HTTP` 请求 and 第三方数据接口，最大程度提升冷启动速度并提供无可置疑的安全隐私。
 
 ---
 ## 6. 版本更迭与维护
@@ -175,3 +318,4 @@ $$\text{finalIndex} = (\text{month} + \text{day} + \text{shichenIndex} - 3) \bmo
 | :--- | :--- | :--- | :--- |
 | **v1.0** | 基础农历推演、时辰 Live Clock、Compose 主题系统、Glance 小部件基础框架 | 2026-06 | 核心基础 |
 | **v1.1** | 增加小六壬掐指妙算，提供经典歌诀与 6 维求占解读；新增每日动态冲煞，完美同步至桌面部件 | 2026-06 | `LunarHelper.kt`, `MainActivity.kt`, `LunarWidget.kt` |
+| **v1.2** | 新增每日吉神方位模块（财神、喜神、福神），配置专属图标、配色与动画，并全方位同步至主页卡片、桌面小部件及实时预览区 | 2026-06 | `LunarHelper.kt`, `MainActivity.kt`, `LunarWidget.kt`, `REQUIREMENTS_AND_DESIGN.md` |

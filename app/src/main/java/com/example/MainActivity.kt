@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -330,6 +332,68 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Three Fortune Deities Directions Section
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "吉神方位",
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "每日吉神方位",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // God of Wealth (财神)
+                    DeityDirectionBadge(
+                        name = "财神",
+                        direction = lunarDate.caiShen,
+                        icon = Icons.Default.Star,
+                        iconColor = Color(0xFFF59E0B), // Golden Yellow
+                        backgroundColor = Color(0xFFF59E0B).copy(alpha = 0.12f),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // God of Joy (喜神)
+                    DeityDirectionBadge(
+                        name = "喜神",
+                        direction = lunarDate.xiShen,
+                        icon = Icons.Default.Favorite,
+                        iconColor = Color(0xFFEC4899), // Pink/Rose
+                        backgroundColor = Color(0xFFEC4899).copy(alpha = 0.12f),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // God of Fortune (福神)
+                    DeityDirectionBadge(
+                        name = "福神",
+                        direction = lunarDate.fuShen,
+                        icon = Icons.Default.LocationOn,
+                        iconColor = Color(0xFF10B981), // Emerald Green
+                        backgroundColor = Color(0xFF10B981).copy(alpha = 0.12f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -903,6 +967,36 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                             modifier = Modifier.weight(1f)
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFF10B981).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "吉",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color(0xFF34D399),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "财神 ${lunarDate.caiShen} · 喜神 ${lunarDate.xiShen} · 福神 ${lunarDate.fuShen}",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color(currentTheme.textColorHex),
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -1054,5 +1148,57 @@ fun calculateXiaoLiuRen(month: Int, day: Int, shichenName: String): XiaoLiuRenRe
             formula = formulaText,
             tip = "空亡主空。徒劳无功，万事成空。代表虚无、失落、破财。此状态下最宜守成修身，不作大举动。"
         )
+    }
+}
+
+@Composable
+fun DeityDirectionBadge(
+    name: String,
+    direction: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(8.dp))
+            .padding(vertical = 8.dp, horizontal = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = name,
+                    tint = iconColor,
+                    modifier = Modifier.size(13.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = direction,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = iconColor,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 14.sp
+                )
+            )
+        }
     }
 }

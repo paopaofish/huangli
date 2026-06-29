@@ -240,6 +240,39 @@ private fun WidgetContent(context: Context) {
                         maxLines = 1
                     )
                 }
+
+                Spacer(modifier = GlanceModifier.height(4.dp))
+
+                // Auspicious Deities Line (吉)
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = GlanceModifier
+                            .background(androidx.glance.unit.ColorProvider(Color(0x2610B981)))
+                            .cornerRadius(4.dp)
+                            .padding(horizontal = 4.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = "吉",
+                            style = TextStyle(
+                                color = androidx.glance.unit.ColorProvider(Color(0xFF34D399)),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                    Spacer(modifier = GlanceModifier.width(6.dp))
+                    Text(
+                        text = "财神:${lunarDate.caiShen} 喜神:${lunarDate.xiShen} 福神:${lunarDate.fuShen}",
+                        style = TextStyle(
+                            color = androidx.glance.unit.ColorProvider(textColor),
+                            fontSize = 11.sp
+                        ),
+                        maxLines = 1
+                    )
+                }
             }
         }
     }

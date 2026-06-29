@@ -18,7 +18,10 @@ class LunarDate(
     val taboo: List<String>,
     val shichenName: String,
     val shichenRange: String,
-    val chongSha: String
+    val chongSha: String,
+    val caiShen: String,
+    val xiShen: String,
+    val fuShen: String
 )
 
 object LunarHelper {
@@ -172,6 +175,34 @@ object LunarHelper {
         }
         val chongSha = "冲${chongAnimal}煞${shaDir}"
 
+        // Calculate positions of Three Auspicious Deities based on Daily Heavenly Stem
+        val stemIndex = dayIndex % 10
+        val caiShen = when (stemIndex) {
+            0 -> "东北"
+            1 -> "西南"
+            2, 3 -> "正西"
+            4, 5 -> "正北"
+            6, 7 -> "正东"
+            8, 9 -> "正南"
+            else -> "正南"
+        }
+        val xiShen = when (stemIndex) {
+            0, 5 -> "东北"
+            1, 6 -> "西北"
+            2, 7 -> "西南"
+            3, 8 -> "正南"
+            4, 9 -> "东南"
+            else -> "正南"
+        }
+        val fuShen = when (stemIndex) {
+            0, 5 -> "正北"
+            1, 6 -> "西南"
+            2, 7 -> "西北"
+            3, 8 -> "东南"
+            4, 9 -> "东北"
+            else -> "东北"
+        }
+
         return LunarDate(
             lunarYear = lunarYear,
             lunarMonth = lunarMonth,
@@ -187,7 +218,10 @@ object LunarHelper {
             taboo = taboo,
             shichenName = shichenName,
             shichenRange = shichenRange,
-            chongSha = chongSha
+            chongSha = chongSha,
+            caiShen = caiShen,
+            xiShen = xiShen,
+            fuShen = fuShen
         )
     }
 
