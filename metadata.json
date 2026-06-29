@@ -1,0 +1,6 @@
+{
+  "name": "黄历农历",
+  "description": "基于 Glance 的 Jetpack Compose 农历黄历桌面小部件，显示农历年月日、时辰与黄历宜忌，支持实时同步和个性化背景主题设置。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
