@@ -1,10 +1,6 @@
 {
     "name": "Android 14 (API 34) + Gradle 9",
-    
-    // 使用官方 Ubuntu 22.04 基础镜像（包含 bash 和常用工具）
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
-
-    // 安装 Java 17 和 Gradle 9（通过 Features）
     "features": {
         "ghcr.io/devcontainers/features/java:1": {
             "version": "17",
@@ -12,30 +8,10 @@
             "gradleVersion": "9.0"
         }
     },
-
-    // 容器创建后执行的命令（安装 Android SDK 命令行工具、平台和构建工具）
-    "postCreateCommand": {
-        "install-android-sdk": [
-            "sudo apt-get update",
-            "sudo apt-get install -y wget unzip",
-            "wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip",
-            "sudo unzip -q /tmp/cmdline-tools.zip -d /usr/local/",
-            "sudo mv /usr/local/cmdline-tools /usr/local/android-sdk",
-            "rm /tmp/cmdline-tools.zip",
-            "export ANDROID_HOME=/usr/local/android-sdk",
-            "export PATH=$PATH:$ANDROID_HOME/bin",
-            "yes | sdkmanager --licenses",
-            "sdkmanager 'platforms;android-34' 'build-tools;34.0.0'"
-        ]
-    },
-
-    // 持久环境变量
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y wget unzip && wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && sudo unzip -q /tmp/cmdline-tools.zip -d /usr/local/ && sudo mv /usr/local/cmdline-tools /usr/local/android-sdk && rm /tmp/cmdline-tools.zip && export ANDROID_HOME=/usr/local/android-sdk && export PATH=$PATH:$ANDROID_HOME/bin && yes | sdkmanager --licenses && sdkmanager 'platforms;android-34' 'build-tools;34.0.0' && echo 'export ANDROID_HOME=/usr/local/android-sdk' >> /home/vscode/.bashrc && echo 'export PATH=$PATH:/usr/local/android-sdk/bin' >> /home/vscode/.bashrc",
     "containerEnv": {
-        "ANDROID_HOME": "/usr/local/android-sdk",
-        "PATH": "/usr/local/android-sdk/bin:${PATH}"
+        "ANDROID_HOME": "/usr/local/android-sdk"
     },
-
-    // VS Code 插件
     "customizations": {
         "vscode": {
             "extensions": [
@@ -44,8 +20,6 @@
             ]
         }
     },
-
-    // 资源需求（可选）
     "hostRequirements": {
         "cpus": 4,
         "memory": "8gb",
