@@ -63,6 +63,16 @@ enum class LunarWidgetTheme(
         subTextColorHex = 0xFFA7F3D0,
         accentColorHex = 0xFF34D399,
         isLight = false
+    ),
+    TRANSPARENT(
+        key = "transparent",
+        title = "空灵全透 (Transparent)",
+        startColorHex = 0x00000000,
+        endColorHex = 0x00000000,
+        textColorHex = 0xFF1E293B,
+        subTextColorHex = 0xFF475569,
+        accentColorHex = 0xFFB45309,
+        isLight = true
     );
 
     // Helpers to get Jetpack Compose colors for the App UI

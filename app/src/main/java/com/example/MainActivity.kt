@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
@@ -707,19 +708,51 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Horizontal Carousel for themes selection
-        LazyRow(
+        // Adaptive wrapping FlowRow for themes selection
+        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(LunarWidgetTheme.values()) { theme ->
+            val isSystemDark = isSystemInDarkTheme()
+            LunarWidgetTheme.values().forEach { theme ->
                 val isSelected = currentTheme == theme
                 
+                val cardBackground = if (theme == LunarWidgetTheme.TRANSPARENT) {
+                    Brush.verticalGradient(
+                        colors = if (isSystemDark) {
+                            listOf(Color(0xFF334155).copy(alpha = 0.5f), Color(0xFF1E293B).copy(alpha = 0.5f))
+                        } else {
+                            listOf(Color(0xFFE2E8F0).copy(alpha = 0.6f), Color(0xFFF1F5F9).copy(alpha = 0.6f))
+                        }
+                    )
+                } else {
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(theme.startColorHex).copy(alpha = 0.75f),
+                            Color(theme.endColorHex).copy(alpha = 0.75f)
+                        )
+                    )
+                }
+
+                val cardTextColor = if (theme == LunarWidgetTheme.TRANSPARENT) {
+                    if (isSystemDark) Color(0xFFF1F5F9) else Color(0xFF1E293B)
+                } else {
+                    Color(theme.textColorHex)
+                }
+
+                val cardAccentColor = if (theme == LunarWidgetTheme.TRANSPARENT) {
+                    if (isSystemDark) Color(0xFFFBBF24) else Color(0xFFB45309)
+                } else {
+                    Color(theme.accentColorHex)
+                }
+
                 Card(
                     modifier = Modifier
-                        .width(130.dp)
+                        .width(112.dp)
                         .clickable {
                             currentTheme = theme
                             LunarWidgetTheme.saveTheme(context, theme)
@@ -729,31 +762,27 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                                 .show()
                         }
                         .testTag("theme_card_${theme.key}"),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     border = if (isSelected) BorderStroke(3.dp, MaterialTheme.colorScheme.primary) else null,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(Color(theme.startColorHex), Color(theme.endColorHex))
-                                )
-                            )
-                            .padding(12.dp)
+                            .background(cardBackground)
+                            .padding(10.dp)
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(80.dp),
+                                .height(72.dp),
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
                                 text = theme.title.split(" (")[0],
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(theme.textColorHex)
+                                    color = cardTextColor
                                 )
                             )
                             
@@ -765,16 +794,16 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                                 // Mini indicator circles of the colors
                                 Box(
                                     modifier = Modifier
-                                        .size(14.dp)
-                                        .background(Color(theme.accentColorHex), CircleShape)
+                                        .size(12.dp)
+                                        .background(cardAccentColor, CircleShape)
                                 )
                                 
                                 if (isSelected) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
                                         contentDescription = "已选择",
-                                        tint = Color(theme.textColorHex),
-                                        modifier = Modifier.size(16.dp)
+                                        tint = cardTextColor,
+                                        modifier = Modifier.size(14.dp)
                                     )
                                 }
                             }
@@ -800,22 +829,101 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Widget Preview Card (reproducing the exact layout of the Glance widget)
-        Surface(
+        // Widget Preview Card (reproducing the exact layout of the Glance widget with mock wallpaper)
+        val isSystemDark = isSystemInDarkTheme()
+        val isTransparent = currentTheme == LunarWidgetTheme.TRANSPARENT
+
+        val previewBgBrush = if (isTransparent) {
+            Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Transparent))
+        } else {
+            Brush.verticalGradient(
+                colors = listOf(
+                    Color(currentTheme.startColorHex).copy(alpha = 0.75f),
+                    Color(currentTheme.endColorHex).copy(alpha = 0.75f)
+                )
+            )
+        }
+
+        val previewTextColor = if (isTransparent) {
+            if (isSystemDark) Color(0xFFF1F5F9) else Color(0xFF1E293B)
+        } else {
+            Color(currentTheme.textColorHex)
+        }
+
+        val previewSubTextColor = if (isTransparent) {
+            if (isSystemDark) Color(0xFFCBD5E1) else Color(0xFF475569)
+        } else {
+            Color(currentTheme.subTextColorHex)
+        }
+
+        val previewAccentColor = if (isTransparent) {
+            if (isSystemDark) Color(0xFFFBBF24) else Color(0xFFB45309)
+        } else {
+            Color(currentTheme.accentColorHex)
+        }
+
+        val previewAccentBgColor = if (isTransparent) {
+            if (isSystemDark) Color(0x26FBBF24) else Color(0x1AB45309)
+        } else {
+            Color(currentTheme.accentColorHex).copy(alpha = 0.15f)
+        }
+
+        val previewDividerColor = if (isTransparent) {
+            if (isSystemDark) Color(0x26FFFFFF) else Color(0x1F000000)
+        } else {
+            Color(currentTheme.subTextColorHex).copy(alpha = 0.15f)
+        }
+
+        val previewIsLightContent = if (isTransparent) !isSystemDark else currentTheme.isLight
+
+        val suitableColor = if (previewIsLightContent) Color(0xFF15803D) else Color(0xFF4ADE80)
+        val tabooColor = if (previewIsLightContent) Color(0xFFB91C1C) else Color(0xFFF87171)
+        val chongColor = if (previewIsLightContent) Color(0xFFB45309) else Color(0xFFFBBF24)
+        val jiColor = if (previewIsLightContent) Color(0xFF047857) else Color(0xFF34D399)
+
+        val suitableBgColor = if (previewIsLightContent) Color(0x1A22C55E) else Color(0x2622C55E)
+        val tabooBgColor = if (previewIsLightContent) Color(0x1AEF4444) else Color(0x26EF4444)
+        val chongBgColor = if (previewIsLightContent) Color(0x1AF59E0B) else Color(0x26F59E0B)
+        val jiBgColor = if (previewIsLightContent) Color(0x1A10B981) else Color(0x2610B981)
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp),
-            shape = RoundedCornerShape(20.dp),
-            shadowElevation = 8.dp
+                .padding(horizontal = 4.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    if (isSystemDark) {
+                        Brush.sweepGradient(
+                            colors = listOf(
+                                Color(0xFF1E1B4B), // Deep Indigo
+                                Color(0xFF0F172A), // Deep Slate
+                                Color(0xFF311042), // Deep Purple
+                                Color(0xFF1E1B4B)
+                            )
+                        )
+                    } else {
+                        Brush.sweepGradient(
+                            colors = listOf(
+                                Color(0xFFEEF2F6), // Warm grey
+                                Color(0xFFE0E7FF), // Soft Indigo
+                                Color(0xFFFDF2F8), // Soft Pink
+                                Color(0xFFEEF2F6)
+                            )
+                        )
+                    }
+                )
+                .padding(12.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color(currentTheme.startColorHex), Color(currentTheme.endColorHex))
-                        )
+                    .background(previewBgBrush, RoundedCornerShape(16.dp))
+                    .border(
+                        width = 1.dp,
+                        color = if (isTransparent) Color.White.copy(alpha = 0.15f) else Color.Transparent,
+                        shape = RoundedCornerShape(16.dp)
                     )
+                    .clip(RoundedCornerShape(16.dp))
                     .padding(16.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -828,7 +936,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         Text(
                             text = SimpleDateFormat("M月d日 EEEE", Locale.CHINESE).format(currentTime),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color(currentTheme.subTextColorHex),
+                                color = previewSubTextColor,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -836,13 +944,13 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         // Shichen Badge
                         Box(
                             modifier = Modifier
-                                .background(Color(currentTheme.accentColorHex).copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                .background(previewAccentBgColor, RoundedCornerShape(6.dp))
                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "${lunarDate.shichenName}",
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    color = Color(currentTheme.accentColorHex),
+                                    color = previewAccentColor,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -855,7 +963,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     Text(
                         text = "${lunarDate.lunarMonthName}${lunarDate.lunarDayName}日${lunarDate.shichenName}",
                         style = MaterialTheme.typography.headlineLarge.copy(
-                            color = Color(currentTheme.textColorHex),
+                            color = previewTextColor,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
                         )
@@ -867,7 +975,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     Text(
                         text = "${lunarDate.ganZhiYear}${lunarDate.zodiac}年 ${lunarDate.ganZhiMonth}月 ${lunarDate.ganZhiDay}日",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color(currentTheme.subTextColorHex),
+                            color = previewSubTextColor,
                             fontWeight = FontWeight.Medium
                         )
                     )
@@ -877,7 +985,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(Color(currentTheme.subTextColorHex).copy(alpha = 0.15f))
+                            .background(previewDividerColor)
                     ) {}
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -888,13 +996,13 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF22C55E).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(suitableBgColor, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "宜",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color(0xFF4ADE80),
+                                    color = suitableColor,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -903,7 +1011,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         Text(
                             text = lunarDate.suitable.take(6).joinToString(" · "),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color(currentTheme.textColorHex)
+                                color = previewTextColor
                             ),
                             modifier = Modifier.weight(1f)
                         )
@@ -917,13 +1025,13 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFFEF4444).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(tabooBgColor, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "忌",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color(0xFFF87171),
+                                    color = tabooColor,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -932,7 +1040,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         Text(
                             text = lunarDate.taboo.take(6).joinToString(" · "),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color(currentTheme.textColorHex)
+                                color = previewTextColor
                             ),
                             modifier = Modifier.weight(1f)
                         )
@@ -946,13 +1054,13 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFFF59E0B).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(chongBgColor, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "冲",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color(0xFFFBBF24),
+                                    color = chongColor,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -961,7 +1069,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         Text(
                             text = lunarDate.chongSha,
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color(currentTheme.textColorHex),
+                                color = previewTextColor,
                                 fontWeight = FontWeight.Medium
                             ),
                             modifier = Modifier.weight(1f)
@@ -976,13 +1084,13 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFF10B981).copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .background(jiBgColor, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = "吉",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color(0xFF34D399),
+                                    color = jiColor,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
@@ -991,7 +1099,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                         Text(
                             text = "财神 ${lunarDate.caiShen} · 喜神 ${lunarDate.xiShen} · 福神 ${lunarDate.fuShen}",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color(currentTheme.textColorHex),
+                                color = previewTextColor,
                                 fontWeight = FontWeight.Medium
                             ),
                             modifier = Modifier.weight(1f)

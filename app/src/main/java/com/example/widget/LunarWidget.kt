@@ -56,23 +56,57 @@ private fun WidgetContent(context: Context) {
     // Convert hex colors to Glance/Compose Color objects
     val isSystemDark = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
 
-    val textColor = if (isSystemDark) Color(0xFFF1F5F9) else Color(0xFF1E293B)
-    val subTextColor = if (isSystemDark) Color(0xFFCBD5E1) else Color(0xFF475569)
-    val accentColor = if (isSystemDark) Color(0xFFFBBF24) else Color(0xFFB45309)
-    val accentBgColor = if (isSystemDark) Color(0x26FBBF24) else Color(0x1AB45309)
-    val dividerColor = if (isSystemDark) Color(0x26FFFFFF) else Color(0x1F000000)
+    val isTransparent = theme.key == "transparent"
 
-    val suitableColor = if (isSystemDark) Color(0xFF4ADE80) else Color(0xFF15803D)
-    val tabooColor = if (isSystemDark) Color(0xFFF87171) else Color(0xFFB91C1C)
-    val chongColor = if (isSystemDark) Color(0xFFFBBF24) else Color(0xFFB45309)
-    val jiColor = if (isSystemDark) Color(0xFF34D399) else Color(0xFF047857)
+    val bgColor = if (isTransparent) {
+        Color.Transparent
+    } else {
+        Color(theme.startColorHex).copy(alpha = 0.75f)
+    }
 
-    val suitableBgColor = if (isSystemDark) Color(0x2622C55E) else Color(0x1A22C55E)
-    val tabooBgColor = if (isSystemDark) Color(0x26EF4444) else Color(0x1AEF4444)
-    val chongBgColor = if (isSystemDark) Color(0x26F59E0B) else Color(0x1AF59E0B)
-    val jiBgColor = if (isSystemDark) Color(0x2610B981) else Color(0x1A10B981)
+    val textColor = if (isTransparent) {
+        if (isSystemDark) Color(0xFFF1F5F9) else Color(0xFF1E293B)
+    } else {
+        Color(theme.textColorHex)
+    }
 
-    val bgColorProvider = androidx.glance.unit.ColorProvider(Color.Transparent)
+    val subTextColor = if (isTransparent) {
+        if (isSystemDark) Color(0xFFCBD5E1) else Color(0xFF475569)
+    } else {
+        Color(theme.subTextColorHex)
+    }
+
+    val accentColor = if (isTransparent) {
+        if (isSystemDark) Color(0xFFFBBF24) else Color(0xFFB45309)
+    } else {
+        Color(theme.accentColorHex)
+    }
+
+    val accentBgColor = if (isTransparent) {
+        if (isSystemDark) Color(0x26FBBF24) else Color(0x1AB45309)
+    } else {
+        Color(theme.accentColorHex).copy(alpha = 0.15f)
+    }
+
+    val dividerColor = if (isTransparent) {
+        if (isSystemDark) Color(0x26FFFFFF) else Color(0x1F000000)
+    } else {
+        Color(theme.subTextColorHex).copy(alpha = 0.15f)
+    }
+
+    val isLightContent = if (isTransparent) !isSystemDark else theme.isLight
+
+    val suitableColor = if (isLightContent) Color(0xFF15803D) else Color(0xFF4ADE80)
+    val tabooColor = if (isLightContent) Color(0xFFB91C1C) else Color(0xFFF87171)
+    val chongColor = if (isLightContent) Color(0xFFB45309) else Color(0xFFFBBF24)
+    val jiColor = if (isLightContent) Color(0xFF047857) else Color(0xFF34D399)
+
+    val suitableBgColor = if (isLightContent) Color(0x1A22C55E) else Color(0x2622C55E)
+    val tabooBgColor = if (isLightContent) Color(0x1AEF4444) else Color(0x26EF4444)
+    val chongBgColor = if (isLightContent) Color(0x1AF59E0B) else Color(0x26F59E0B)
+    val jiBgColor = if (isLightContent) Color(0x1A10B981) else Color(0x2610B981)
+
+    val bgColorProvider = androidx.glance.unit.ColorProvider(bgColor)
     val textColorProvider = androidx.glance.unit.ColorProvider(textColor)
     val subTextColorProvider = androidx.glance.unit.ColorProvider(subTextColor)
     val accentColorProvider = androidx.glance.unit.ColorProvider(accentColor)
