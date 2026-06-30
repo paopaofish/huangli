@@ -8,6 +8,8 @@
       "version": "17",
       "jdkDistro": "ms"
     },
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
     // 2. 微软官方 Gradle Feature，锁定 9.3.1
     "ghcr.io/devcontainers/features/gradle:1": {
       "version": "9.3.1"
@@ -21,12 +23,19 @@
     "PATH": "${containerEnv:PATH}:/usr/local/share/android-sdk/cmdline-tools/latest/bin:/usr/local/share/android-sdk/platform-tools"
   },
 
-  "customizations": {
+ "customizations": {
     "vscode": {
       "extensions": [
         "vscjava.vscode-java-pack",
-        "vscjava.vscode-gradle"
-      ]
+        "naco-siren.gradle-language",
+        "fwcd.kotlin",
+        "esafirm.android-xml-format",
+        "Google.android-studio"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "kotlin.languageServer.enabled": true
+      }
     }
   },
 
