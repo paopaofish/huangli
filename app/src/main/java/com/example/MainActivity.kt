@@ -40,6 +40,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.updateAll
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Intent
+import com.example.widget.LunarWidgetReceiver
 import com.example.lunar.LunarHelper
 import com.example.ui.theme.LunarWidgetTheme
 import com.example.ui.theme.MyApplicationTheme
@@ -51,6 +56,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+
+private var currentToast: Toast? = null
+
+private fun showToast(context: Context, text: String) {
+    currentToast?.cancel()
+    val toast = Toast.makeText(context.applicationContext, text, Toast.LENGTH_SHORT)
+    currentToast = toast
+    toast.show()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,14 +124,31 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
         }
     }
 
+    var widgetUpdateJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+
     // Function to trigger Glance Widget update
     fun triggerWidgetUpdate() {
-        coroutineScope.launch(Dispatchers.IO) {
+        widgetUpdateJob?.cancel() // Cancel any pending/running update to prevent out-of-order rendering
+        widgetUpdateJob = coroutineScope.launch(Dispatchers.IO) {
+            delay(300) // Debounce rapid clicks to avoid queuing/throttling and system-level rate limits
+            val appContext = context.applicationContext
             try {
-                val manager = GlanceAppWidgetManager(context)
-                val glanceIds = manager.getGlanceIds(LunarWidget::class.java)
-                for (glanceId in glanceIds) {
-                    LunarWidget().update(context, glanceId)
+                // 1. Trigger Glance updateAll on applicationContext to update all instances immediately
+                LunarWidget().updateAll(appContext)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            try {
+                // 2. Send standard physical AppWidget update broadcast to force launcher to refresh immediately
+                val appWidgetManager = AppWidgetManager.getInstance(appContext)
+                val componentName = ComponentName(appContext, LunarWidgetReceiver::class.java)
+                val ids = appWidgetManager.getAppWidgetIds(componentName)
+                if (ids.isNotEmpty()) {
+                    val intent = Intent(appContext, LunarWidgetReceiver::class.java).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                    }
+                    appContext.sendBroadcast(intent)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -160,7 +191,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                 onClick = {
                     currentTime = Date()
                     triggerWidgetUpdate()
-                    Toast.makeText(context, "同步刷新成功", Toast.LENGTH_SHORT).show()
+                    showToast(context, "同步刷新成功")
                 },
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
@@ -312,31 +343,64 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "冲煞",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "冲煞",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = MaterialTheme.colorScheme.tertiary,
+                            text = lunarDate.chongSha,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Bold
                             )
                         )
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = lunarDate.chongSha,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Bold
+
+                    val chongShaExplanation = remember(lunarDate.chongSha) {
+                        val cs = lunarDate.chongSha
+                        if (cs.length >= 4) {
+                            val animal = cs[1]
+                            val dir = cs[3]
+                            "• 冲$animal：属${animal}生肖之人今日气场与日相冲，行事需格外稳妥，重要决策建议避开今日。\n" +
+                            "• 煞$dir：今日煞气聚集在${dir}方位，出行应尽量避免朝该方向行进，也不宜在${dir}方动土、翻修。"
+                        } else {
+                            "• 冲：当日生肖相冲者今日行事需格外稳妥谨慎。\n" +
+                            "• 煞：当日不宜出行、动土等重要事务的方位。"
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = chongShaExplanation,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                                lineHeight = 18.sp
+                            )
                         )
-                    )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -760,9 +824,7 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
                             currentTheme = theme
                             LunarWidgetTheme.saveTheme(context, theme)
                             triggerWidgetUpdate()
-                            Toast
-                                .makeText(context, "主题已更新并同步到桌面", Toast.LENGTH_SHORT)
-                                .show()
+                            showToast(context, "主题已更新并同步到桌面")
                         }
                         .testTag("theme_card_${theme.key}"),
                     shape = RoundedCornerShape(12.dp),

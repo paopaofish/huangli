@@ -87,14 +87,14 @@ enum class LunarWidgetTheme(
         private const val KEY_THEME = "selected_theme"
 
         fun getSavedTheme(context: Context): LunarWidgetTheme {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val savedKey = prefs.getString(KEY_THEME, CLASSIC_GOLD.key)
             return values().firstOrNull { it.key == savedKey } ?: CLASSIC_GOLD
         }
 
         fun saveTheme(context: Context, theme: LunarWidgetTheme) {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putString(KEY_THEME, theme.key).apply()
+            val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putString(KEY_THEME, theme.key).commit()
         }
     }
 }
