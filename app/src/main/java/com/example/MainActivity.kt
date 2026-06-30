@@ -124,36 +124,24 @@ fun LunarAlmanacApp(modifier: Modifier = Modifier) {
         }
     }
 
-    var widgetUpdateJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    val widgetUpdateChannel = remember { kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED) }
 
-    // Function to trigger Glance Widget update
-    fun triggerWidgetUpdate() {
-        widgetUpdateJob?.cancel() // Cancel any pending/running update to prevent out-of-order rendering
-        widgetUpdateJob = coroutineScope.launch(Dispatchers.IO) {
+    LaunchedEffect(Unit) {
+        for (event in widgetUpdateChannel) {
             delay(300) // Debounce rapid clicks to avoid queuing/throttling and system-level rate limits
             val appContext = context.applicationContext
             try {
-                // 1. Trigger Glance updateAll on applicationContext to update all instances immediately
+                // Trigger Glance updateAll on applicationContext to update all instances immediately
                 LunarWidget().updateAll(appContext)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            try {
-                // 2. Send standard physical AppWidget update broadcast to force launcher to refresh immediately
-                val appWidgetManager = AppWidgetManager.getInstance(appContext)
-                val componentName = ComponentName(appContext, LunarWidgetReceiver::class.java)
-                val ids = appWidgetManager.getAppWidgetIds(componentName)
-                if (ids.isNotEmpty()) {
-                    val intent = Intent(appContext, LunarWidgetReceiver::class.java).apply {
-                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-                    }
-                    appContext.sendBroadcast(intent)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
+    }
+
+    // Function to trigger Glance Widget update
+    fun triggerWidgetUpdate() {
+        widgetUpdateChannel.trySend(Unit)
     }
 
     Column(
