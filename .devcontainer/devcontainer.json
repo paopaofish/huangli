@@ -1,9 +1,9 @@
 {
   "name": "Android Codespaces Env",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  
+
+  // 可选功能（Java + 通用工具 + Git）
   "features": {
-    // 1. 微软官方 Java 17 Feature
     "ghcr.io/devcontainers/features/java:1": {
       "version": "17",
       "jdkDistro": "ms",
@@ -13,14 +13,18 @@
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  // 3. 直接注入 Android SDK 必需的系统环境变量
+
+  // 环境变量（同时作用于容器和 VS Code 终端）
   "containerEnv": {
     "ANDROID_HOME": "/usr/local/share/android-sdk",
-    "ANDROID_SDK_ROOT": "/usr/local/share/android-sdk",
-    "PATH": "${containerEnv:PATH}:/usr/local/share/android-sdk/cmdline-tools/latest/bin:/usr/local/share/android-sdk/platform-tools"
+    "ANDROID_SDK_ROOT": "/usr/local/share/android-sdk"
+  },
+  "remoteEnv": {
+    "PATH": "${env:PATH}:/usr/local/share/android-sdk/cmdline-tools/latest/bin:/usr/local/share/android-sdk/platform-tools"
   },
 
- "customizations": {
+  // VS Code 定制
+  "customizations": {
     "vscode": {
       "extensions": [
         "vscjava.vscode-java-pack",
@@ -36,8 +40,6 @@
     }
   },
 
-  "remoteUser": "vscode",
-
-  // 4. 初始化脚本：创建目录 -> 给足权限 -> 下载谷歌原厂工具 -> 自动同意协议并安装 SDK
-  "postCreateCommand": "sudo mkdir -p /usr/local/share/android-sdk/cmdline-tools && sudo chown -R vscode:vscode /usr/local/share/android-sdk && wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && unzip -q /tmp/cmdline-tools.zip -d /usr/local/share/android-sdk/cmdline-tools && mv /usr/local/share/android-sdk/cmdline-tools/cmdline-tools /usr/local/share/android-sdk/cmdline-tools/latest && rm /tmp/cmdline-tools.zip && yes | sdkmanager --licenses && sdkmanager \"platform-tools\" \"platforms;android-34\" \"build-tools;34.0.0\""
+  // 初始化脚本（安装 Android SDK 并接受许可）
+  "postCreateCommand": "set -e; sudo mkdir -p /usr/local/share/android-sdk/cmdline-tools && sudo chown -R vscode:vscode /usr/local/share/android-sdk && wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && unzip -q /tmp/cmdline-tools.zip -d /usr/local/share/android-sdk/cmdline-tools && mv /usr/local/share/android-sdk/cmdline-tools/cmdline-tools /usr/local/share/android-sdk/cmdline-tools/latest && rm /tmp/cmdline-tools.zip && echo 'y' | /usr/local/share/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 && /usr/local/share/android-sdk/cmdline-tools/latest/bin/sdkmanager 'platform-tools' 'platforms;android-34' 'build-tools;34.0.0'"
 }
