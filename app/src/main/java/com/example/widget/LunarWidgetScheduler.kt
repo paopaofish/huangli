@@ -12,14 +12,18 @@ object LunarWidgetScheduler {
      * is kept up-to-date and refreshed automatically.
      */
     fun scheduleDailyUpdate(context: Context) {
-        val workRequest = PeriodicWorkRequestBuilder<LunarWidgetWorker>(
-            12, TimeUnit.HOURS
-        ).build()
+        try {
+            val workRequest = PeriodicWorkRequestBuilder<LunarWidgetWorker>(
+                12, TimeUnit.HOURS
+            ).build()
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "LunarWidgetDailyUpdate",
-            ExistingPeriodicWorkPolicy.KEEP,
-            workRequest
-        )
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "LunarWidgetDailyUpdate",
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

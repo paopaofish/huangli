@@ -1,0 +1,15 @@
+{
+  "name": "applet",
+  "version": "1.0.0",
+  "description": "基于 Kotlin 和 Google 最新推出的 **Jetpack Compose** 与 **Glance (androidx.glance)** 框架，精心打造的一款优雅、精致、现代的「黄历农历」应用和桌面小部件。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lunisolar": "^2.6.0"
+  }
+}

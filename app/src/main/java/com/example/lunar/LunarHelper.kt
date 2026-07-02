@@ -43,7 +43,7 @@ object LunarHelper {
         0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2, // 1900-1909
         0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977, // 1910-1919
         0x04970, 0x0a4b0, 0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970, // 1920-1929
-        0x06566, 0x0d4a0, 0x0ea50, 0x06e95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950, // 1930-1939
+        0x06566, 0x0d4a0, 0x0ea50, 0x16a95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950, // 1930-1939
         0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0, 0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557, // 1940-1949
         0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5b0, 0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0, // 1950-1959
         0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260, 0x0f263, 0x0d950, 0x05b57, 0x056a0, // 1960-1969
@@ -55,10 +55,45 @@ object LunarHelper {
         0x07954, 0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530, // 2020-2029
         0x05aa0, 0x076a3, 0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45, // 2030-2039
         0x0b5a0, 0x056d0, 0x055b2, 0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0, // 2040-2049
-        0x14b06, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06b20, 0x1a6c4, 0x0aa40  // 2050-2059
+        0x14b63, 0x09370, 0x049f8, 0x04970, 0x064b0, 0x168a6, 0x0ea50, 0x06aa0, 0x1a6c4, 0x0aae0  // 2050-2059
     )
 
     // Base reference date: 1900-01-31 which is Lunar 1900-01-01
+    private val solarTermInfo = longArrayOf(
+        0x788887665646L, 0x889888665646L, 0x889888766656L, 0x889998776756L, 0x789887665657L, 
+        0x889888665646L, 0x889888666656L, 0x889998776756L, 0x789887665657L, 0x889888665646L, 
+        0x889888666656L, 0x889998776756L, 0x789887665657L, 0x889888665646L, 0x889888665646L, 
+        0x889988766656L, 0x788887665656L, 0x789888665646L, 0x889888665646L, 0x889988766656L, 
+        0x788887665656L, 0x789888665646L, 0x889888665646L, 0x889988766656L, 0x788887665656L, 
+        0x789888665646L, 0x889888665646L, 0x889888766656L, 0x778887665656L, 0x789887665646L, 
+        0x889888665646L, 0x889888766656L, 0x778887665656L, 0x789887665646L, 0x889888665646L, 
+        0x889888666656L, 0x778887665656L, 0x789887665646L, 0x889888665646L, 0x889888666656L, 
+        0x778887665656L, 0x789887665646L, 0x889888665646L, 0x889888666656L, 0x778887655656L, 
+        0x788887665646L, 0x889888665646L, 0x889888665646L, 0x778877655556L, 0x788887665645L, 
+        0x889888665646L, 0x889888665646L, 0x778877655556L, 0x788887665645L, 0x789888665646L, 
+        0x889888665646L, 0x778877655556L, 0x788887665645L, 0x789887665646L, 0x889888665646L, 
+        0x778777655556L, 0x778887665645L, 0x789887665646L, 0x889888665646L, 0x778777655556L, 
+        0x778887665645L, 0x789887665646L, 0x889888665646L, 0x778777555556L, 0x778887665645L, 
+        0x789887665646L, 0x889888665646L, 0x778777555556L, 0x778887655645L, 0x789887665646L, 
+        0x889888665646L, 0x778777554556L, 0x778877655645L, 0x788887665646L, 0x889888665646L, 
+        0x778777554556L, 0x778877655645L, 0x788887665646L, 0x889888665646L, 0x778777554546L, 
+        0x778877655545L, 0x788887665645L, 0x789887665646L, 0x778777554546L, 0x778777655545L, 
+        0x788887665645L, 0x789887665646L, 0x778777554546L, 0x778777655545L, 0x778887665645L, 
+        0x789887665646L, 0x778777554546L, 0x778777555545L, 0x778887665645L, 0x789887665646L, 
+        0x778777554546L, 0x778777555545L, 0x778887665645L, 0x789887665646L, 0x778777554546L, 
+        0x778777555545L, 0x778877655645L, 0x789887665646L, 0x778777554546L, 0x778777554545L, 
+        0x778877655645L, 0x788887665646L, 0x778777554546L, 0x778777554545L, 0x778877655645L, 
+        0x788887665646L, 0x778777554546L, 0x778777554535L, 0x778877655545L, 0x788887665645L, 
+        0x778776554546L, 0x778777554535L, 0x778777655545L, 0x788887665645L, 0x678776554546L, 
+        0x778777554535L, 0x778777555545L, 0x778887665645L, 0x678776554546L, 0x778777554535L, 
+        0x778777555545L, 0x778887665645L, 0x678776554546L, 0x778777554535L, 0x778777555545L, 
+        0x778877655645L, 0x678776554546L, 0x778777554535L, 0x778777555545L, 0x778877655645L, 
+        0x678776554546L, 0x778777554535L, 0x778777554545L, 0x778877655645L, 0x677776554546L, 
+        0x778777554535L, 0x778777554545L, 0x778877655645L, 0x677776554546L, 0x778776554535L, 
+        0x778777554535L, 0x778777655545L, 0x677776554545L, 0x778776554535L, 0x778777554535L, 
+        0x778777555545L, 0x677776554545L, 0x678776554535L, 0x778777554535L, 0x778777555545L
+    )
+
     private val baseTimeInMillis: Long = -2206425600000L // 1900-01-31 00:00:00 UTC
 
     private fun getLunarYearDays(year: Int): Int {
@@ -94,9 +129,17 @@ object LunarHelper {
     fun fromSolarDate(solarDate: Date): LunarDate {
         val calendar = Calendar.getInstance().apply { time = solarDate }
         val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        // Shifting date to next day if hour is >= 23 (子时换日 / Day transition at Zi Shi 23:00)
+        val calcCalendar = Calendar.getInstance().apply {
+            time = solarDate
+            if (hourOfDay >= 23) {
+                add(Calendar.DAY_OF_MONTH, 1)
+            }
+        }
+        val year = calcCalendar.get(Calendar.YEAR)
+        val month = calcCalendar.get(Calendar.MONTH) // 0-based
+        val day = calcCalendar.get(Calendar.DAY_OF_MONTH)
 
         // Calculate offset days from 1900-01-31 in a timezone-independent calendar date way
         val calBase = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
@@ -146,24 +189,49 @@ object LunarHelper {
 
         val lunarDay = offset + 1
 
-        // Calculation of Stem-Branch (干支) and Zodiac (生肖)
-        val yearIndex = (lunarYear - 4) % 60
+        // Date calculation for Day Stem-Branch (using timezone-independent calendar day offset)
+        // Reference: Epoch day stem-branch.
+        // 1900-01-31 was 甲辰日 (Stem index 0, Branch index 4, value index 40)
+        val dayOffset = ((calSolar.timeInMillis - calBase.timeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
+        val dayIndex = (dayOffset + 40) % 60
+        val ganZhiDay = tgString[dayIndex % 10] + dzString[dayIndex % 12]
+
+        // Calculate Bazi Year & Bazi Month based on Solar Terms from solarTermInfo (matching lunisolar rules)
+        val yearIndexForTerm = if (year in 1900..2059) year - 1900 else 0
+        val yearTermInfo = solarTermInfo[yearIndexForTerm]
+        val gMonth = month + 1 // 1-based solar month
+
+        // Solar term day for current solar month
+        val termDay = ((yearTermInfo shr ((gMonth - 1) * 4)) and 0x0FL).toInt()
+
+        // Bazi Month Index (0 to 11, where 0 is Tiger/寅 month starting at Feb term)
+        val baziMonthIndex = if (day >= termDay) {
+            if (gMonth >= 2) gMonth - 2 else 11
+        } else {
+            if (gMonth >= 3) gMonth - 3
+            else if (gMonth == 2) 11
+            else 10
+        }
+
+        // Bazi Year transition at Li Chun (立春)
+        val liChunDay = ((yearTermInfo shr 4) and 0x0FL).toInt() // index 1 (Feb) is Li Chun
+        val baziYear = if (gMonth > 2 || (gMonth == 2 && day >= liChunDay)) {
+            year
+        } else {
+            year - 1
+        }
+
+        // Calculation of Bazi Stem-Branch (干支) and Zodiac (生肖)
+        val yearIndex = (baziYear - 4) % 60
         val ganZhiYear = tgString[yearIndex % 10] + dzString[yearIndex % 12]
         val zodiac = sxString[yearIndex % 12]
 
-        // Date calculation for Day Stem-Branch (using timezone-independent calendar day offset)
-        // Reference: Epoch day stem-branch.
-        // 1900-01-31 was 甲戌日 (Stem index 0, Branch index 10)
-        val dayOffset = ((calSolar.timeInMillis - calBase.timeInMillis) / (24 * 60 * 60 * 1000L)).toInt()
-        val dayIndex = (dayOffset + 10) % 60
-        val ganZhiDay = tgString[dayIndex % 10] + dzString[dayIndex % 12]
-
-        // Month stem-branch
-        // Year stem determines starting stem of the month
+        // Month stem-branch using traditional Five Tigers formula (五虎遁)
         val yearStemIndex = yearIndex % 10
         val startMonthStemIndex = (yearStemIndex * 2 + 2) % 10
-        val monthIndex = (startMonthStemIndex + lunarMonth - 1) % 60
-        val ganZhiMonth = tgString[monthIndex % 10] + dzString[(lunarMonth + 1) % 12] // Lunar Jan is Month of Tiger (寅: index 2)
+        val monthStemIndex = (startMonthStemIndex + baziMonthIndex) % 10
+        val monthBranchIndex = (baziMonthIndex + 2) % 12
+        val ganZhiMonth = tgString[monthStemIndex] + dzString[monthBranchIndex]
 
         // Month names
         val lunarMonthName = if (isLeap) "闰${lunarMonthNames[lunarMonth - 1]}" else lunarMonthNames[lunarMonth - 1]
@@ -173,7 +241,6 @@ object LunarHelper {
         val (shichenName, shichenRange) = getShichenInfo(hourOfDay)
 
         // Taboos & Suitabilities (宜忌) based on Twelve Day Officers (建除十二神)
-        val monthBranchIndex = (lunarMonth + 1) % 12 // Lunar Jan is Month of Tiger (寅: index 2)
         val dayBranchIndex = dayIndex % 12
         val officerIndex = (dayBranchIndex - monthBranchIndex + 12) % 12
         val (suitable, taboo) = getHuangliEvents(officerIndex)
@@ -302,5 +369,9 @@ object LunarHelper {
                 listOf("动土", "嫁娶", "安葬", "开市", "移徙", "词讼")
             )
         }
+    }
+
+    fun getSolarTermInfo(): LongArray {
+        return solarTermInfo
     }
 }

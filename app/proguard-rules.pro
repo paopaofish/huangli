@@ -5,6 +5,10 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
+# Suppress warnings about Kotlin metadata rewriting
+-dontwarn kotlin.Metadata
+-dontwarn kotlin.**
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
